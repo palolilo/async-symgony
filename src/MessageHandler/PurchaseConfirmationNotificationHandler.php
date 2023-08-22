@@ -3,17 +3,50 @@
 namespace App\MessageHandler;
 
 use App\Message\PurchaseConfirmationNotification;
+use Mpdf\Mpdf;
+use Mpdf\MpdfException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Mime\Email;
 
 #[AsMessageHandler]
 class PurchaseConfirmationNotificationHandler {
 
-    public function __invoke(PurchaseConfirmationNotification $notification) {
+
+    private MailerInterface $mailer;
+
+    public function __construct(MailerInterface $mailer) {
+        $this->mailer = $mailer;
+    }
+
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws MpdfException
+     */
+    public function __invoke(PurchaseConfirmationNotification $notification): void {
         // 1 Create Email contact note
-        echo 'Creating a PDF contract note... <br>';
+
+        $mpdf = new Mpdf();
+        $content = "<h1>Contract Note For Order {$notification->getOrder()->getId()}</h1>";
+        $content .= "<p>Total: <b>$1800,50</b</p>";
+
+        $mpdf->writeHtml($content);
+
+        $contentNotePdf = $mpdf->output('','S');
 
         // 2 Email the contract note to the buyer
-        echo 'Email contract to ' . $notification->getOrder()->getBuyer()->getEmail() . '<br>';
+        $email = (new Email())
+            ->from('sales@pkmeto.com')
+            ->to($notification->getOrder()->getBuyer()->getEmail())
+            ->subject($notification->getOrder()->getId())
+            ->text('Here is your contract note.')
+            ->attach($contentNotePdf,'contract-note.pdf')
+        ;
+
+        $this->mailer->send($email);
+
     }
 
 }
