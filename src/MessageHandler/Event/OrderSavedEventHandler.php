@@ -1,18 +1,16 @@
 <?php
 
-namespace App\MessageHandler;
+namespace App\MessageHandler\Event;
 
-use App\Message\PurchaseConfirmationNotification;
+use App\Message\Event\OrderSavedEvent;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Mime\Email;
 
-#[AsMessageHandler]
-class PurchaseConfirmationNotificationHandler {
-
+class OrderSavedEventHandler implements MessageHandlerInterface {
 
     private MailerInterface $mailer;
 
@@ -20,16 +18,15 @@ class PurchaseConfirmationNotificationHandler {
         $this->mailer = $mailer;
     }
 
-
     /**
-     * @throws TransportExceptionInterface
      * @throws MpdfException
+     * @throws TransportExceptionInterface
      */
-    public function __invoke(PurchaseConfirmationNotification $notification): void {
+    public function __invoke(OrderSavedEvent $event): void {
         // 1 Create Email contact note
 
         $mpdf = new Mpdf();
-        $content = "<h1>Contract Note For Order {$notification->getOrderId()}</h1>";
+        $content = "<h1>Contract Note For Order {$event->getOrderId()}</h1>";
         $content .= "<p>Total: <b>$1800,50</b</p>";
 
         $mpdf->writeHtml($content);
@@ -40,13 +37,14 @@ class PurchaseConfirmationNotificationHandler {
         $email = (new Email())
             ->from('sales@pkmeto.com')
             ->to('pkmeto@pkmeto.com')
-            ->subject($notification->getOrderId())
+            ->subject($event->getOrderId())
             ->text('Here is your contract note.')
             ->attach($contentNotePdf,'contract-note.pdf')
         ;
 
         $this->mailer->send($email);
-
     }
+
+
 
 }
