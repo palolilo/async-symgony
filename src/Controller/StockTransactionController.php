@@ -35,7 +35,7 @@ class StockTransactionController extends AbstractController {
         };
 
         // 1, Dispatch confirmation message
-        $bus->dispatch(new PurchaseConfirmationNotification($order));
+        $bus->dispatch(new PurchaseConfirmationNotification($order->getId()));
 
 
         // 2, Display confirmation to the user
