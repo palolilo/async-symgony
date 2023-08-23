@@ -3,6 +3,7 @@
 namespace App\MessageHandler\Event;
 
 use App\Message\Event\OrderSavedEvent;
+use http\Exception\RuntimeException;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -23,6 +24,10 @@ class OrderSavedEventHandler implements MessageHandlerInterface {
      * @throws TransportExceptionInterface
      */
     public function __invoke(OrderSavedEvent $event): void {
+
+        throw new RuntimeException('ORDER COULD NOT FIND');
+
+
         // 1 Create Email contact note
 
         $mpdf = new Mpdf();
